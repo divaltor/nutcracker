@@ -1,32 +1,28 @@
-//
-//  nutcrackerApp.swift
-//  nutcracker
-//
-//  Created by Vlad on 15.02.26.
-//
-
 import SwiftUI
-import SwiftData
 
 @main
-struct nutcrackerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+struct NutcrackerApp: App {
+    @State private var filterListStore = FilterListStore()
+    @State private var clipboardMonitor = ClipboardMonitor()
 
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        MenuBarExtra {
+            MenuBarView(
+                clipboardMonitor: clipboardMonitor,
+                filterListStore: filterListStore
+            )
+        } label: {
+            Image(systemName: clipboardMonitor.isEnabled ? "shield.checkered" : "shield.slash")
         }
-        .modelContainer(sharedModelContainer)
+    }
+
+    init() {
+        clipboardMonitor.filterListStore = filterListStore
+        clipboardMonitor.start()
+
+        let store = filterListStore
+        Task {
+            await store.loadOrFetch()
+        }
     }
 }
