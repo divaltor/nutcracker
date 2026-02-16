@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  SCHEME: nutcracker
+  PROJECT: nutcracker.xcodeproj
+  CONFIGURATION: Release
+  APP_NAME: nutcracker
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Build and Archive
+        run: |
+          xcodebuild archive \
+            -project ${{ env.PROJECT }} \
+            -scheme ${{ env.SCHEME }} \
+            -configuration ${{ env.CONFIGURATION }} \
+            -archivePath $RUNNER_TEMP/${{ env.APP_NAME }}.xcarchive \
+            -destination 'platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export app
+        run: |
+          mkdir -p $RUNNER_TEMP/export
+          cp -R $RUNNER_TEMP/${{ env.APP_NAME }}.xcarchive/Products/Applications/${{ env.APP_NAME }}.app $RUNNER_TEMP/export/
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "${{ env.APP_NAME }}" \
+            --window-pos 200 120 \
+            --window-size 800 450 \
+            --icon-size 100 \
+            --icon "${{ env.APP_NAME }}.app" 200 190 \
+            --hide-extension "${{ env.APP_NAME }}.app" \
+            --app-drop-link 600 185 \
+            "${{ env.APP_NAME }}.dmg" \
+            "$RUNNER_TEMP/export/${{ env.APP_NAME }}.app" || true
+
+          if [ ! -f "${{ env.APP_NAME }}.dmg" ]; then
+            hdiutil create -volname "${{ env.APP_NAME }}" \
+              -srcfolder "$RUNNER_TEMP/export/${{ env.APP_NAME }}.app" \
+              -ov -format UDZO "${{ env.APP_NAME }}.dmg"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APP_NAME }}.dmg
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+          body: |
+            ## Installation
+
+            1. Download `nutcracker.dmg`
+            2. Open the DMG
+            3. Drag **nutcracker** to **Applications**
+            4. Right-click the app in Applications → **Open** → Click **Open** when prompted
+
+            The app is unsigned. macOS will show a warning — this is normal for apps not distributed through the App Store.
