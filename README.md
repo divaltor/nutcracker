@@ -7,3 +7,7 @@ A macOS menu bar app that monitors the clipboard for URLs, filters them using in
 Xcode: Open `nutcracker.xcodeproj` and press Cmd+B to build, or Cmd+R to build and run.
 
 CLI: `xcodebuild -project nutcracker.xcodeproj -scheme nutcracker -configuration Release build`
+
+## Credits
+
+- App icons by `infloat`
