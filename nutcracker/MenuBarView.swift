@@ -22,8 +22,10 @@ struct MenuBarView: View {
         }
 
         if let lastUpdated = filterListStore.lastUpdated {
-            Text("Updated: \(lastUpdated, format: .relative(presentation: .named))")
-                .foregroundStyle(.secondary)
+            TimelineView(.periodic(from: .now, by: 60)) { _ in
+                Text("Updated: \(lastUpdated, format: .relative(presentation: .named))")
+                    .foregroundStyle(.secondary)
+            }
         }
 
         Divider()
