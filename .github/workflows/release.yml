@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 env:
   SCHEME: nutcracker
   PROJECT: nutcracker.xcodeproj
