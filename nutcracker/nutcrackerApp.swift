@@ -14,6 +14,10 @@ struct NutcrackerApp: App {
         } label: {
             Image(systemName: clipboardMonitor.isEnabled ? "shield.checkered" : "shield.slash")
         }
+
+        Settings {
+            SettingsView(filterListStore: filterListStore)
+        }
     }
 
     init() {

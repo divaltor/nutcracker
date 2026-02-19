@@ -1,11 +1,10 @@
-import ServiceManagement
 import SwiftUI
 
 struct MenuBarView: View {
     @Bindable var clipboardMonitor: ClipboardMonitor
     var filterListStore: FilterListStore
 
-    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Toggle("Enabled", isOn: $clipboardMonitor.isEnabled)
@@ -45,26 +44,15 @@ struct MenuBarView: View {
 
         Button("Refresh Rules") {
             Task {
-                await filterListStore.fetchFromRemote()
+                await filterListStore.refreshAllSources()
             }
         }
         .disabled(filterListStore.isLoading)
 
-        Divider()
-
-        Toggle("Launch at Login", isOn: $launchAtLogin)
-            .toggleStyle(.checkbox)
-            .onChange(of: launchAtLogin) {
-                do {
-                    if launchAtLogin {
-                        try SMAppService.mainApp.register()
-                    } else {
-                        try SMAppService.mainApp.unregister()
-                    }
-                } catch {
-                    launchAtLogin = SMAppService.mainApp.status == .enabled
-                }
-            }
+        Button("Settings…") {
+            NSApp.activate()
+            openSettings()
+        }
 
         Divider()
 
