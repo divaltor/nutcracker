@@ -13,7 +13,7 @@ struct SettingsView: View {
             FilterListsSection(filterListStore: filterListStore)
         }
         .padding()
-        .frame(width: 520, minHeight: 440, idealHeight: 500)
+        .frame(minWidth: 520, idealWidth: 520, maxWidth: 520, minHeight: 440, idealHeight: 500)
     }
 }
 
