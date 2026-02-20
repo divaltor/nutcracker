@@ -14,6 +14,11 @@ struct SettingsView: View {
         }
         .padding()
         .frame(minWidth: 520, idealWidth: 520, maxWidth: 520, minHeight: 440, idealHeight: 500)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
+            guard let window = notification.object as? NSWindow,
+                  window.identifier?.rawValue == "com_apple_SwiftUI_Settings_window" else { return }
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 }
 

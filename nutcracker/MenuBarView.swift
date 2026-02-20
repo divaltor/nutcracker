@@ -50,6 +50,7 @@ struct MenuBarView: View {
         .disabled(filterListStore.isLoading)
 
         Button("Settings…") {
+            NSApp.setActivationPolicy(.regular)
             NSApp.activate()
             openSettings()
         }
