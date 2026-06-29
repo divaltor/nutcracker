@@ -14,6 +14,11 @@ final class FilterListStore {
     private let parser = FilterListParser()
     private let logger = Logger(subsystem: "dev.sweet.diva.nutcracker", category: "FilterListStore")
 
+    /// How often filter lists are refreshed automatically (7 days).
+    private static let refreshInterval: TimeInterval = 7 * 24 * 60 * 60
+    /// How often the auto-update scheduler checks whether a refresh is due.
+    private static let checkInterval: TimeInterval = 60 * 60
+
     // MARK: - Cache paths
 
     private var cacheDirectory: URL {
@@ -50,11 +55,26 @@ final class FilterListStore {
         reparseRules()
         logger.info("Loaded \(self.rules.count) rules from cache")
 
-        if let lastUpdated, Date().timeIntervalSince(lastUpdated) < 86400 {
+        if let lastUpdated, Date().timeIntervalSince(lastUpdated) < Self.refreshInterval {
             return
         }
 
         await refreshAllSources()
+    }
+
+    /// Schedules recurring automatic refreshes every 7 days. Safe to call once
+    /// at app launch; the task lives for the lifetime of the store.
+    func startAutoUpdate() {
+        Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: UInt64(Self.checkInterval * 1_000_000_000))
+                guard !Task.isCancelled else { break }
+                let stale = lastUpdated.map { Date().timeIntervalSince($0) >= Self.refreshInterval } ?? true
+                if stale {
+                    await refreshAllSources()
+                }
+            }
+        }
     }
 
     func refreshAllSources() async {

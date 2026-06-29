@@ -25,6 +25,7 @@ struct NutcrackerApp: App {
         clipboardMonitor.start()
 
         let store = filterListStore
+        store.startAutoUpdate()
         Task {
             await store.loadOrFetch()
         }
